@@ -1,0 +1,28 @@
+ls /
+cd /kickstart
+ls -lh
+sudo apt-get install -y python3 python3-pip
+pip3 install tornado
+python3 web-server.py &
+curl http://localhost:8888
+kill %1
+cat Dockerfile
+sudo docker build -t py-web-server:v1 .
+sudo docker run -d -p 8888:8888 --name py-web-server -h my-web-server py-web-server:v1
+curl http://localhost:8888
+sudo docker rm -f py-web-server
+sudo usermod -aG docker $USER
+
+New SSH
+
+cd /kickstart
+export GCP_PROJECT=`gcloud config list core/project --format='value(core.project)'`
+docker build -t "gcr.io/${GCP_PROJECT}/py-web-server:v1" .
+PATH=/usr/lib/google-cloud-sdk/bin:$PATH
+gcloud auth configure-docker
+docker push gcr.io/${GCP_PROJECT}/py-web-server:v1
+gsutil defacl ch -u AllUsers:R gs://artifacts.${GCP_PROJECT}.appspot.com
+gsutil acl ch -r -u AllUsers:R gs://artifacts.${GCP_PROJECT}.appspot.com
+gsutil acl ch -u AllUsers:R gs://artifacts.${GCP_PROJECT}.appspot.com
+
+docker run -d -p 8888:8888 -h my-web-server gcr.io/${GCP_PROJECT}/py-web-server:v1
