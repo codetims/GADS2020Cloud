@@ -1,1 +1,1 @@
-# GADS2020Cloud
+# Practice Project Submissions
